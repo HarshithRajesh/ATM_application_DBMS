@@ -118,6 +118,7 @@ func Login(c *gin.Context) {
 
 func GetUserProfile(c *gin.Context){
   user, _ := c.Get("currentUser")
+  u := user.(User
   c.JSON(200,gin.H{
     "user":user,
   })
