@@ -15,4 +15,4 @@ type App struct{
 
 func (a *App) Initialize(user,password,dbname string){ }
 
-func (a *App) Run(addr string){ }
+nc (a *App) Run(addr string){ }

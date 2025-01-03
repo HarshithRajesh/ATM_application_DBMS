@@ -1,28 +1,28 @@
 package main
 
 import (
-  "net/http"
-  "github.com/gin-gonic/gin"
-  
-  "github.com/HarshithRajesh/zapster/initializers"
-  "github.com/HarshithRajesh/zapster/controllers"
-  "github.com/HarshithRajesh/zapster/middleware"
+    "github.com/gin-gonic/gin"
+    
+    "github.com/HarshithRajesh/zapster/initializers"
+    "github.com/HarshithRajesh/zapster/controllers"
+    "github.com/HarshithRajesh/zapster/middleware" // Ensure this matches the package name
 )
 
-func init(){
-  initializers.LoadEnvs()
-  initializers.ConnectDB()
+func init() {
+    initializers.LoadEnvs()
+    initializers.ConnectDB()
 }
 
 func main() {
-  r := gin.Default()
+    router := gin.Default()
+    router.GET("/hello", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Hello, World!",
+		})
+	})
 
-  r.GET("/", func(c *gin.Context) {
-    c.JSON(http.StatusOK, gin.H{"data": "hello world"})    
-  })
-  r.POST("/auth/signup",controllers.CreateUser)
-  r.POST("/auth/login",controllers.Login)
-  r.POST("/auth/profile",middleware.CheckAuth,controllers.GetUserProfile)
-
-  r.Run()
+    router.POST("/auth/signup", controllers.CreateUser )
+    router.POST("/auth/login", controllers.Login)
+    router.GET("/user/profile", middleware.CheckAuth, controllers.GetUserProfile) // Use middleware instead of middlewares
+    router.Run()
 }

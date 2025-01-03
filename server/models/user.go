@@ -11,3 +11,6 @@ type User struct{
   Password    string  `json:"password"`
 
 }
+func (User) TableName() string {
+    return "users" // Replace this with your actual table name if it's different
+}

@@ -12,6 +12,7 @@ import (
   "fmt"
   "strings"
 )
+
 func CreateUser(c *gin.Context) {
     var authInput models.AuthInput
 
@@ -21,25 +22,16 @@ func CreateUser(c *gin.Context) {
         return
     }
 
-    // Check if all required fields are provided
-    if authInput.Username == "" || authInput.Email == "" || authInput.Password == "" ||
-       authInput.FirstName == "" || authInput.LastName == "" || authInput.PhoneNumber == "" {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "All fields are required: username, email, password, first name, last name, phone number"})
-        return
-    }
-
-    // Check if the username already exists
+    // Check if username or email already exists
     var userFound models.User
-    initializers.DB.Where("username = ?", authInput.Username).First(&userFound)
-    if userFound.UserID != 0 {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists"})
-        return
+    if authInput.Username != "" {
+        initializers.DB.Where("username = ?", authInput.Username).First(&userFound)
+    } else if authInput.Email != "" {
+        initializers.DB.Where("email = ?", authInput.Email).First(&userFound)
     }
 
-    // Check if the email already exists
-    initializers.DB.Where("email = ?", authInput.Email).First(&userFound)
     if userFound.UserID != 0 {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Username or Email already exists"})
         return
     }
 
@@ -50,7 +42,7 @@ func CreateUser(c *gin.Context) {
         return
     }
 
-    // Create the user
+    // Create a new user
     user := models.User{
         Username:   authInput.Username,
         Password:   string(passwordHash),
@@ -60,7 +52,7 @@ func CreateUser(c *gin.Context) {
         PhoneNumber: authInput.PhoneNumber,
     }
 
-    // Save the user to the database
+    // Save the new user to the database
     if err := initializers.DB.Create(&user).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
         return
@@ -72,33 +64,27 @@ func CreateUser(c *gin.Context) {
         "data": user,
     })
 }
-
-
 func Login(c *gin.Context) {
-    var authInput models.LoginInput
+    var authInput models.AuthInput
 
-    // Bind JSON input to struct for login
     if err := c.ShouldBindJSON(&authInput); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
 
     var userFound models.User
-    if authInput.Username != "" {
-        initializers.DB.Where("username = ?", authInput.Username).First(&userFound)
-    }
+    initializers.DB.Where("username = ?", authInput.Username).First(&userFound)
+
     if userFound.UserID == 0 {
         c.JSON(http.StatusBadRequest, gin.H{"error": "user not found"})
         return
     }
 
-    // Compare password
     if err := bcrypt.CompareHashAndPassword([]byte(userFound.Password), []byte(authInput.Password)); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "invalid password"})
         return
     }
 
-    // Generate JWT token
     generateToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
         "id":  userFound.UserID,
         "exp": time.Now().Add(time.Hour * 24).Unix(),
@@ -114,8 +100,6 @@ func Login(c *gin.Context) {
         "token": token,
     })
 }
-
-
 func GetUserProfile(c *gin.Context){
   user, _ := c.Get("currentUser")
   c.JSON(200,gin.H{
