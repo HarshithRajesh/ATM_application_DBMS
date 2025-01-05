@@ -23,6 +23,19 @@ func main() {
 
     router.POST("/auth/signup", controllers.CreateUser )
     router.POST("/auth/login", controllers.Login)
-    router.GET("/user/profile", middleware.CheckAuth, controllers.GetUserProfile) // Use middleware instead of middlewares
+    router.GET("/user/profile", middleware.CheckAuth, controllers.GetUserProfile)
+    router.POST("/accounts", controllers.CreateAccount)
+	  router.GET("/accounts/:id", controllers.GetAccount)
+	  router.PUT("/accounts/:id", controllers.UpdateAccount)
+	  router.DELETE("/accounts/:id", controllers.DeleteAccount)
+	  router.GET("/accounts", controllers.ListAccounts)
+    router.POST("/create-card",controllers.CreateCard)
+    router.POST("/update-card-status", controllers.UpdateCardStatus) // Update Card Status
+    router.POST("/lock-card", controllers.LockCardAfterFailedAttempts) // Lock Card After Failed Attempts
+    router.DELETE("/delete-card/:card_number", controllers.DeleteCard) // Delete Card
+    router.POST("/transactions/withdraw", controllers.CashWithdrawal)
+    router.POST("/transactions/deposit", controllers.CashDeposit)
+    router.GET("/transactions/history", controllers.TransactionHistory)
+
     router.Run()
 }
